@@ -4,7 +4,7 @@ namespace Lox {
     bool had_error = false;
 
     void report(int line, const std::string& where, const std::string& message) {
-        std::cout << "[line ]" << line << "] Error" << where << ": " << message << '\n';
+        std::cout << "[line " << line << "] Error" << where << ": " << message << '\n';
         had_error = true;
     }
 

@@ -21,7 +21,11 @@ class Scanner {
         void add_token(TokenType type, Object literal);
         bool match(char expected);
         char peek() const;
+        char peek_next() const;
+
         void string();
+        void number();
+        void identifier();
 
         void scan_token();
     public:

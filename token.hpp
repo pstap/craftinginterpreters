@@ -21,8 +21,10 @@ IDENTIFIER, STRING, NUMBER,
 AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
 PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
-EOFF
+END_OF_FILE
 };
+
+std::string token_type_to_string(TokenType t);
 
 using Object = int;
 

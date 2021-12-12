@@ -1,5 +1,29 @@
 #include "scanner.hpp"
 
+#include <cctype> // for isdigit, isalpha
+#include <string>
+#include <map>
+
+std::map<std::string, TokenType> keywords = {
+    {"and", TokenType::AND},
+    {"class", TokenType::CLASS},
+    {"else", TokenType::ELSE},
+    {"false", TokenType::FALSE},
+    {"for", TokenType::FOR},
+    {"fun", TokenType::FUN},
+    {"if", TokenType::IF},
+    {"nil", TokenType::NIL},
+    {"or", TokenType::OR},
+    {"print", TokenType::PRINT},
+    {"return", TokenType::RETURN},
+    {"super", TokenType::SUPER},
+    {"this", TokenType::THIS},
+    {"true", TokenType::TRUE},
+    {"var", TokenType::VAR},
+    {"while", TokenType::WHILE},
+};
+
+
 bool Scanner::is_at_end() const {
     return current >= source.length();
 }
@@ -29,6 +53,11 @@ char Scanner::peek() const {
     return source[current];
 }
 
+char Scanner::peek_next() const {
+    if(current+1 >= source.length()) return '\0';
+    return source[current+1];
+}
+
 void Scanner::string() {
     while(peek() != '"' && !is_at_end()) {
         if(peek() == '\n') line++;
@@ -45,7 +74,39 @@ void Scanner::string() {
 
     // trim surrounding quotes
     const auto value = source.substr(start+1, current-1);
-    add_token(TokenType::STRING, value);
+
+    // TODO put actual value here
+    add_token(TokenType::STRING, 0);
+}
+
+void Scanner::number() {
+    while(isdigit(peek())) advance();
+
+    // look for fractional part
+    if(peek() == '.' && isdigit(peek_next())) {
+        advance();
+        while(isdigit(peek())) advance();
+    }
+
+    float value = std::stof(source.substr(start, current - start));
+    // TODO put actual value here
+    add_token(TokenType::NUMBER, 15);
+}
+
+void Scanner::identifier() {
+    const auto is_alpha_numeric = [](char c) -> bool { return isalpha(c) || isdigit(c); };
+    while(is_alpha_numeric(peek())) advance();
+
+    const auto text = source.substr(start, current - start);
+
+    TokenType type;
+    if(keywords.find(text) == keywords.end()) {
+        type = TokenType::IDENTIFIER;
+    } else {
+        type = keywords[text];
+    }
+
+    add_token(type);
 }
 
 void Scanner::scan_token() {
@@ -89,9 +150,16 @@ void Scanner::scan_token() {
         case '\n':
             line++;
             break;
-        case '"': string() break;
+        case '"': string(); break;
         default:
-            Lox::error(line , "Unexpected character.");
+            if(isdigit(c)) {
+                number();
+            } else if(isalpha(c)) {
+                identifier();
+            }
+            else {
+                Lox::error(line , "Unexpected character.");
+            }
             break;
     }
 }
@@ -101,6 +169,6 @@ std::vector<Token> Scanner::scan_tokens() {
        start = current;
        scan_token();
     }
-    tokens.push_back(Token(TokenType::EOFF, "", 1, line));
+    tokens.push_back(Token(TokenType::END_OF_FILE, "", 1, line));
     return tokens;
 }
